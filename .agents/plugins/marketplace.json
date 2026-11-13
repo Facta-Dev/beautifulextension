@@ -1,0 +1,20 @@
+{
+  "name": "beautiful-extension",
+  "interface": {
+    "displayName": "Beautiful Extension"
+  },
+  "plugins": [
+    {
+      "name": "beautiful-extension",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

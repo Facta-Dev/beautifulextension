@@ -1,0 +1,39 @@
+name: Propose a rule
+description: Suggest a rule the skills should add, change, or drop
+labels: ["rule"]
+body:
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Which skill?
+      options:
+        - extension-best-practices (writing code)
+        - extension-review (reviewing code)
+        - extension-port (porting to MV3)
+        - lints config
+    validations:
+      required: true
+  - type: textarea
+    id: rule
+    attributes:
+      label: The rule
+      description: One or two sentences, phrased as guidance an agent could follow.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: A link to the published guidance this comes from (Chrome's MV3 documentation, the Web Store program policies, the extension security guidance, the facta extension handbook, the typescript-eslint rule docs, and so on).
+    validations:
+      required: true
+  - type: textarea
+    id: before
+    attributes:
+      label: What the agent writes today
+      render: typescript
+  - type: textarea
+    id: after
+    attributes:
+      label: What it should write instead
+      render: typescript

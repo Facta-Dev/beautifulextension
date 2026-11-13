@@ -1,0 +1,4 @@
+{
+  "_comment": "No standalone ts blocks are ledgered yet: the extension skills use tsx fences when they need chrome types or JSX, and the lints/check project compiles the TypeScript harness instead. Add an entry here when a self-contained ts block lands.",
+  "files": {}
+}

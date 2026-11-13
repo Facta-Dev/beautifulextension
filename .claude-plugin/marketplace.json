@@ -1,0 +1,15 @@
+{
+  "name": "beautiful-extension",
+  "owner": {
+    "name": "Facta-Dev",
+    "url": "https://github.com/Facta-Dev"
+  },
+  "description": "Skills for writing beautiful, secure Manifest V3 Chrome extensions with Claude.",
+  "plugins": [
+    {
+      "name": "beautiful-extension",
+      "source": "./",
+      "description": "Skills that teach Claude to write, review, and port idiomatic Chrome extensions on Manifest V3 + TypeScript, distilled from Chrome's MV3 documentation, the Web Store policies, and the facta extension handbook, plus a drop-in eslint config."
+    }
+  ]
+}

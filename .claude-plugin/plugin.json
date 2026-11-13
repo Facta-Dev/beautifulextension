@@ -1,0 +1,31 @@
+{
+  "name": "beautiful-extension",
+  "version": "0.1.0",
+  "description": "Write, review, port, and enforce idiomatic Chrome extensions on Manifest V3 + TypeScript: three skills distilled from Chrome's MV3 documentation, the Web Store policies, the extension security guidance, and the facta extension handbook, plus a drop-in eslint config.",
+  "license": "MIT",
+  "author": {
+    "name": "Facta-Dev",
+    "url": "https://github.com/Facta-Dev"
+  },
+  "homepage": "https://github.com/Facta-Dev/beautifulextension",
+  "repository": "https://github.com/Facta-Dev/beautifulextension",
+  "keywords": [
+    "best-practices",
+    "chrome-extension",
+    "code-review",
+    "content-script",
+    "eslint",
+    "manifest-v3",
+    "messaging",
+    "permissions",
+    "porting",
+    "service-worker",
+    "skill",
+    "typescript"
+  ],
+  "skills": [
+    "./skills/extension-best-practices",
+    "./skills/extension-port",
+    "./skills/extension-review"
+  ]
+}

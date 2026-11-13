@@ -1,0 +1,57 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "beautiful-extension",
+  "version": "0.1.0",
+  "description": "Write, review, port, and enforce idiomatic Chrome extensions on Manifest V3 + TypeScript: three skills distilled from Chrome's MV3 documentation, the Web Store policies, the extension security guidance, and the facta extension handbook, plus a drop-in eslint config.",
+  "author": {
+    "name": "Facta-Dev",
+    "url": "https://github.com/Facta-Dev"
+  },
+  "homepage": "https://github.com/Facta-Dev/beautifulextension",
+  "repository": "https://github.com/Facta-Dev/beautifulextension",
+  "license": "MIT",
+  "keywords": [
+    "best-practices",
+    "chrome-extension",
+    "code-review",
+    "content-script",
+    "eslint",
+    "manifest-v3",
+    "messaging",
+    "permissions",
+    "porting",
+    "service-worker",
+    "skill",
+    "typescript"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Beautiful Extension",
+        "shortDescription": "Write, review, port extensions",
+        "longDescription": "Three skills for Chrome extension developers on Manifest V3, distilled from Chrome's MV3 documentation, the Web Store program policies, the extension security guidance, and the facta extension handbook.\n\nextension-best-practices guides new extension code: the event-driven service worker, top-level listener registration, typed storage with migrations, sender-validated messaging, least-privilege permissions, a strict CSP, content-script boundaries, the SDK in the worker, and the unbreakable layer contract.\n\nextension-review reviews a worker, content script, popup, manifest, message contract, or diff and returns a prioritized report. Architecture and sender validation rank above everything. Every finding cites a file and line, the rule it breaks, and the smallest fix.\n\nextension-port ports MV2 background pages, Firefox/Edge extensions, or a web app to MV3 with the same behavior. It ports the original tests first and writes a PORTING.md that lists every deliberate difference.\n\nThe skills contain instructions and reference text only. They make no network calls and collect no data. When a Node.js toolchain is available, the skills run tsc, eslint, and vitest on your project; without one, they work from the code alone. A drop-in eslint config is available in the GitHub repository.",
+        "developerName": "Facta-Dev",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Write idiomatic Manifest V3 extensions",
+          "Review extensions with cited rules",
+          "Port MV2 or web code to MV3 with the same behavior"
+        ],
+        "websiteURL": "https://github.com/Facta-Dev/beautifulextension",
+        "supportURL": "https://github.com/Facta-Dev/beautifulextension/issues",
+        "privacyPolicyURL": "https://github.com/Facta-Dev/beautifulextension/blob/main/PRIVACY.md",
+        "defaultPrompt": [
+          "Review this extension manifest and list what to fix first",
+          "Port this MV2 background page to a service worker",
+          "Write a sender-validated message handler for this feature"
+        ],
+        "brandColor": "#4285F4",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      },
+      "publication": {
+        "release_notes": "Initial release: three MV3 skills, the layer and sender-validation contract, and a proven eslint config."
+      }
+    }
+  }
+}
