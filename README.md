@@ -211,11 +211,17 @@ rule without a source and a failing example is a preference, not a rule. See
 ## Siblings
 
 Beautiful Extension is part of the Beautiful series for the facta playbooks:
+[beautiful-j2ee](https://github.com/Facta-Dev/beautiful-j2ee),
+[beautifulandroid](https://github.com/Facta-Dev/beautifulandroid),
+[beautifulcli](https://github.com/Facta-Dev/beautifulcli),
 [beautifulgo](https://github.com/Facta-Dev/beautifulgo),
+[beautifulios](https://github.com/Facta-Dev/beautifulios),
 [beautifulnodejs](https://github.com/Facta-Dev/beautifulnodejs),
 [beautifulpython](https://github.com/Facta-Dev/beautifulpython),
-[beautifulrust](https://github.com/Facta-Dev/beautifulrust) and
-[beautifulreact](https://github.com/Facta-Dev/beautifulreact).
+[beautifulqt](https://github.com/Facta-Dev/beautifulqt),
+[beautifulreact](https://github.com/Facta-Dev/beautifulreact),
+[beautifulreactnative](https://github.com/Facta-Dev/beautifulreactnative),
+[beautifulrust](https://github.com/Facta-Dev/beautifulrust).
 
 ## License
 
