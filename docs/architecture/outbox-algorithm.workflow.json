@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "beautifulextension — Async Delivery (job queue + alarm drain)",
+    "quality_profile": "showcase",
+    "output": "outbox-algorithm.workflow.html"
+  },
+  "lanes": [
+    { "id": "producer", "label": "Producer" },
+    { "id": "trigger", "label": "Trigger" },
+    { "id": "worker", "label": "Worker" },
+    { "id": "queue", "label": "Job queue" },
+    { "id": "api", "label": "Product API" },
+    { "id": "sink", "label": "Failure sinks" }
+  ],
+  "phases": [
+    { "id": "wake", "label": "Wake + lock", "fromCol": 0, "toCol": 1 },
+    { "id": "work", "label": "Claim → run → deliver", "fromCol": 2, "toCol": 3 },
+    { "id": "settle", "label": "Deliver, settle", "fromCol": 4, "toCol": 5, "variant": "emphasis" }
+  ],
+  "mainPath": ["alarm", "lock", "claim", "run", "send", "ack"],
+  "nodes": [
+    { "id": "enqueue", "lane": "producer", "col": 1, "type": "backend", "label": "Enqueue the job", "sublabel": "persist before responding" },
+    { "id": "alarm", "lane": "trigger", "col": 0, "type": "frontend", "label": "Alarm fires", "sublabel": "chrome.alarms · one drain per tick" },
+    { "id": "lock", "lane": "worker", "col": 1, "type": "backend", "label": "Lock the drain", "sublabel": "navigator.locks · one at a time" },
+    { "id": "claim", "lane": "queue", "col": 2, "type": "database", "label": "Claim due jobs", "sublabel": "storage.local · IndexedDB" },
+    { "id": "run", "lane": "worker", "col": 3, "type": "backend", "label": "Run the handler", "sublabel": "idempotent · same job id once" },
+    { "id": "backoff", "lane": "sink", "col": 3, "type": "backend", "label": "Classify the failure", "sublabel": "retryable vs terminal" },
+    { "id": "send", "lane": "api", "col": 4, "type": "external", "label": "Product API", "sublabel": "fetch · bearer · idempotency key" },
+    { "id": "dead", "lane": "sink", "col": 4, "type": "database", "label": "Dead-letter", "sublabel": "terminal · admin-visible count" },
+    { "id": "ack", "lane": "queue", "col": 5, "type": "database", "label": "Ack the job", "sublabel": "completed · attempts++" }
+  ],
+  "edges": [
+    { "id": "o1", "from": "alarm", "to": "lock", "label": "wake" },
+    { "id": "o2", "from": "enqueue", "to": "claim", "label": "job due" },
+    { "id": "o3", "from": "lock", "to": "claim", "label": "due jobs" },
+    { "id": "o4", "from": "claim", "to": "run", "label": "fetch the job" },
+    { "id": "o5", "from": "run", "to": "send", "label": "the call" },
+    { "id": "o6", "from": "send", "to": "ack", "label": "2xx", "variant": "emphasis" },
+    { "id": "o7", "from": "send", "to": "backoff", "label": "network · 429 · 5xx", "variant": "dashed" },
+    { "id": "o8", "from": "backoff", "to": "dead", "label": "max attempts", "variant": "dashed" },
+    { "id": "o9", "from": "backoff", "to": "claim", "label": "retry · backoff + jitter", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "The queue is durable, not a timer",
+      "items": [
+        "a job is persisted as {id, type, payload, attempts, nextRunAt, idempotencyKey} — the worker may die at any point and the job survives",
+        "one chrome.alarms tick drains the due jobs inside a time budget and re-arms; setInterval dies with the worker, an alarm does not",
+        "the drain holds navigator.locks.request(\"job-drain\", …): one drain at a time, even with several worker instances"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Idempotency is the contract",
+      "items": [
+        "the same job id runs once even if the worker dies mid-flight and the alarm fires again",
+        "a non-idempotent call is never retried without an idempotency key",
+        "the handler is one use case; long work is enqueued, never awaited inside the event listener"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Retry classification",
+      "items": [
+        "retryable: network errors, 429 and 5xx — exponential backoff with jitter, honouring Retry-After",
+        "terminal: a validation or permission failure — the job goes to the dead-letter store instead of looping",
+        "the dead-letter count and the queue depth are visible in the diagnostics export, without tokens or page content"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "What this repo does not have",
+      "items": [
+        "there is no transactional outbox table, no broker and no cron service: MV3 has no server, so the persisted job queue plus the alarm IS the async path",
+        "the durable delivery mechanism is chrome.storage plus chrome.alarms, not a Postgres outbox and a worker process",
+        "the role keeps its file name for series consistency; the mechanism it documents is the extension one"
+      ]
+    }
+  ]
+}

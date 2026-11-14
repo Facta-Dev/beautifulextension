@@ -1,0 +1,169 @@
+{
+  "schema_version": 3,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "beautifulextension — Worker Runtime Lifecycle",
+    "quality_profile": "showcase",
+    "output": "runtime-lifecycle.lifecycle.html"
+  },
+  "mainPath": [
+    "boot",
+    "idle",
+    "wake",
+    "handle",
+    "respond"
+  ],
+  "states": [
+    {
+      "id": "boot",
+      "type": "start",
+      "label": "Start",
+      "sublabel": "listeners at top level",
+      "tag": "entry"
+    },
+    {
+      "id": "register",
+      "type": "active",
+      "label": "Register listeners",
+      "sublabel": "may be terminated"
+    },
+    {
+      "id": "idle",
+      "type": "waiting",
+      "label": "Idle",
+      "sublabel": "rebuild · read storage",
+      "tag": "wait"
+    },
+    {
+      "id": "wake",
+      "type": "active",
+      "label": "Handle",
+      "sublabel": "parse · one use case"
+    },
+    {
+      "id": "handle",
+      "type": "decision",
+      "label": "Handle the event",
+      "sublabel": "typed result",
+      "tag": "gate"
+    },
+    {
+      "id": "respond",
+      "type": "success",
+      "label": "Respond",
+      "sublabel": "typed result · never a token",
+      "tag": "done"
+    },
+    {
+      "id": "reject",
+      "type": "failure",
+      "label": "Rejected",
+      "sublabel": "forbidden · validation · conflict",
+      "tag": "terminal"
+    },
+    {
+      "id": "enqueue",
+      "type": "active",
+      "label": "Enqueue the job",
+      "sublabel": "persist · idempotency key",
+      "tag": "async"
+    },
+    {
+      "id": "drain",
+      "type": "active",
+      "label": "Alarm drains the queue",
+      "sublabel": "chrome.alarms · backoff",
+      "tag": "async"
+    },
+    {
+      "id": "settled",
+      "type": "success",
+      "label": "Settled",
+      "sublabel": "completed · or dead-lettered",
+      "tag": "terminal"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t1",
+      "from": "boot",
+      "to": "idle",
+      "label": "sleeps"
+    },
+    {
+      "id": "t2",
+      "from": "idle",
+      "to": "wake",
+      "label": "an event"
+    },
+    {
+      "id": "t3",
+      "from": "wake",
+      "to": "handle"
+    },
+    {
+      "id": "t4",
+      "from": "handle",
+      "to": "respond",
+      "label": "ok",
+      "variant": "emphasis"
+    },
+    {
+      "id": "t5",
+      "from": "handle",
+      "to": "reject",
+      "label": "not allowed",
+      "variant": "security"
+    },
+    {
+      "id": "t6",
+      "from": "handle",
+      "to": "enqueue",
+      "label": "long work",
+      "variant": "dashed"
+    },
+    {
+      "id": "t7",
+      "from": "enqueue",
+      "to": "drain",
+      "label": "the alarm fires",
+      "variant": "dashed"
+    },
+    {
+      "id": "t8",
+      "from": "drain",
+      "to": "settled",
+      "label": "ack · or dead-letter",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "The boot rail",
+      "items": [
+        "listeners are registered synchronously at the top level of the entry module: a listener added after an await is never registered when the event wakes the worker",
+        "the container is built cheaply and rebuilt on every wake — the session is read from storage, never from a module global",
+        "onInstalled runs the migrations and the one-time setup (alarms, context menus, uninstall URL, onboarding); onStartup reconciles the queues, the policy and the session projections"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "One event, one use case",
+      "items": [
+        "the listener parses the input, calls a use case, persists the result and responds — long work is enqueued, not awaited inside the listener",
+        "handlers are idempotent: an event can fire twice, a response can be lost, and a restart can resume mid-flow from the persisted checkpoint",
+        "storage.onChanged on the managed area recomputes the effective policy and applies the kill switch immediately"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "The worker is mortal",
+      "items": [
+        "Chrome terminates an idle worker after roughly 30 seconds without events or extension API calls, so a timer is not a scheduler: chrome.alarms is",
+        "a cache may exist but it is rebuilt; the source of truth is always storage",
+        "every surface works when the worker is asleep: the RPC wakes it, the UI shows a loading state and then the data"
+      ]
+    }
+  ]
+}

@@ -161,6 +161,23 @@ file per rule with a `// expect:<rule>` marker, plus a clean control.
 quiet, if anything unmarked fires, or if `tsc --noEmit` fails on the same
 files.
 
+## Architecture diagrams
+
+The repo ships eight [Archify](https://github.com/tt-a1i/archify) diagrams under
+[`docs/architecture/`](docs/architecture/README.md), each one a standalone HTML page
+(inline SVG, dark/light themes, live motion) next to the JSON it was rendered from.
+
+| Diagram | What it shows |
+|---|---|
+| [c4-containers](docs/architecture/c4-containers.html) | The extension runtime: popup, side panel, options and content script as thin clients of one service worker, the chrome.storage areas, and the product API the worker alone calls |
+| [services-slices](docs/architecture/services-slices.architecture.html) | The layer contract — domain, application, adapters, ui, content, core — and the dependency walls the lints enforce |
+| [auth-algorithm](docs/architecture/auth-algorithm.workflow.html) | The trust algorithm: classify the sender, check the message permission table, parse the schema, read the token from storage.session |
+| [outbox-algorithm](docs/architecture/outbox-algorithm.workflow.html) | The async path: a persisted job queue drained by one chrome.alarms tick, with backoff, dead-lettering and idempotency |
+| [auth-sequence](docs/architecture/auth-sequence.sequence.html) | The message trace from a UI or content script through the gate stack to the token and the API |
+| [outbox-sequence](docs/architecture/outbox-sequence.sequence.html) | The alarm drain: claim, run, deliver, ack, and what a retryable or terminal failure does |
+| [database-dataflow](docs/architecture/database-dataflow.dataflow.html) | Where the state goes: chrome.storage.local/session/managed and the HTTPS calls the worker alone makes |
+| [runtime-lifecycle](docs/architecture/runtime-lifecycle.lifecycle.html) | The worker lifecycle: start, register the listeners, idle, wake, handle, respond — plus the rejection, enqueue and drain branches |
+
 ## What it does not do
 
 - The skills contain instructions and reference text only. They make no
@@ -191,6 +208,9 @@ scripts/
 tests/                       unit, contracts, integration, e2e
 examples/
   review-extension.md        a full worked review
+docs/
+  architecture/              eight Archify diagrams (C4, slices, auth,
+                             outbox, dataflow, lifecycle) + the index
 ```
 
 ## Sources

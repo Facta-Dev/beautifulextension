@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "beautifulextension — Container Architecture",
+    "quality_profile": "showcase",
+    "output": "c4-containers.html",
+    "views": [
+      {
+        "id": "runtime",
+        "label": "Runtime",
+        "focus": [
+          "page",
+          "content",
+          "options",
+          "sidepanel",
+          "popup",
+          "worker",
+          "api"
+        ],
+        "note": "the extension runtime the kit governs: thin UI clients, one worker that owns the session, and the API it alone calls."
+      },
+      {
+        "id": "trust",
+        "label": "Trust boundary",
+        "focus": [
+          "page",
+          "content",
+          "worker",
+          "session",
+          "api"
+        ],
+        "note": "the hostile page, the content script that may not hold a token, and the worker that may."
+      },
+      {
+        "id": "state",
+        "label": "State",
+        "focus": [
+          "worker",
+          "session",
+          "local",
+          "managed",
+          "api"
+        ],
+        "note": "chrome.storage is the only persistence; there is no server-side database behind the extension."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "page",
+      "type": "external",
+      "label": "Host page",
+      "sublabel": "main world · untrusted",
+      "pos": [
+        40,
+        210
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "content",
+      "type": "frontend",
+      "label": "Content script",
+      "sublabel": "isolated world · no SDK",
+      "pos": [
+        310,
+        210
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "options",
+      "type": "frontend",
+      "label": "Options page",
+      "sublabel": "settings · diagnostics",
+      "pos": [
+        460,
+        40
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "sidepanel",
+      "type": "frontend",
+      "label": "Side panel",
+      "sublabel": "persistent workspace",
+      "pos": [
+        640,
+        40
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "popup",
+      "type": "frontend",
+      "label": "Popup",
+      "sublabel": "quick actions · closes",
+      "pos": [
+        820,
+        40
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Service worker",
+      "sublabel": "session · SDK · queue",
+      "pos": [
+        660,
+        210
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "session",
+      "type": "database",
+      "label": "chrome.storage.session",
+      "sublabel": "access token · in memory",
+      "pos": [
+        560,
+        380
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "local",
+      "type": "database",
+      "label": "chrome.storage.local",
+      "sublabel": "settings · caches · jobs",
+      "pos": [
+        760,
+        380
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "managed",
+      "type": "security",
+      "label": "chrome.storage.managed",
+      "sublabel": "admin policy · kill switch",
+      "pos": [
+        960,
+        380
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "api",
+      "type": "external",
+      "label": "Product API",
+      "sublabel": "host permissions · CORS",
+      "pos": [
+        1030,
+        210
+      ],
+      "size": [
+        160,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Extension contexts — one id, one worker (MV3)",
+      "wraps": [
+        "content",
+        "options",
+        "sidepanel",
+        "popup",
+        "worker"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "chrome.storage — the extension's only persistence",
+      "wraps": [
+        "session",
+        "local",
+        "managed"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "from": "page",
+      "to": "content",
+      "label": "window.postMessage",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c2",
+      "from": "content",
+      "to": "worker",
+      "label": "typed RPC · content subset",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c3",
+      "from": "options",
+      "to": "worker",
+      "label": "settings RPC",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c4",
+      "from": "sidepanel",
+      "to": "worker",
+      "label": "panel RPC",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c5",
+      "from": "popup",
+      "to": "worker",
+      "label": "action RPC",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c6",
+      "from": "worker",
+      "to": "session",
+      "label": "token",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c7",
+      "from": "worker",
+      "to": "local",
+      "label": "jobs · settings",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c8",
+      "from": "worker",
+      "to": "managed",
+      "label": "policy",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c9",
+      "from": "worker",
+      "to": "api",
+      "label": "fetch · bearer",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One worker, one truth",
+      "items": [
+        "the worker is the only context that holds the session, calls the SDK and writes durable state — the UI surfaces are clients that render its answers",
+        "listeners are registered synchronously at the top level of the worker entry module: a listener registered after an await is a lost event",
+        "Chrome terminates the worker when it is idle, so no state may live in a module global; state is rebuilt from storage on every wake"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "The page is hostile",
+      "items": [
+        "a content script runs in the page's DOM but in an isolated world: it may capture typed data but never the SDK, the session or a token",
+        "the bridge to the main world validates event.source, the origin, the payload schema and a nonce before anything is forwarded",
+        "the manifest and the CSP forbid remote code: no eval, no new Function, no remote script"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The kit that ships the contract",
+      "items": [
+        "extension-best-practices carries the architecture contract, the messaging rules, the storage rules and the permission discipline",
+        "extension-review turns the contract into a prioritized report: a broken layer wall or a missing sender check is a Must fix",
+        "extension-port moves MV2 background pages, Firefox builds and web apps onto MV3 with the same behavior, porting the tests first"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "The machine-checkable half",
+      "items": [
+        "lints/eslint.config.mjs pins the layer walls: no chrome in domain/application, no SDK in the UI, no SDK or session in content, no chrome or React in the SDK",
+        "scripts/check-lints.sh proves every pinned rule fires against a planted violation, and the clean file must stay clean",
+        "CI runs check, lints, examples and the unittest suite; a rule that needs an exception has not finished"
+      ]
+    }
+  ]
+}

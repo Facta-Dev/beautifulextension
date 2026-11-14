@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "beautifulextension — Trust Sequence (message → token → API)",
+    "quality_profile": "showcase",
+    "output": "auth-sequence.sequence.html"
+  },
+  "participants": [
+    {
+      "id": "caller",
+      "type": "frontend",
+      "label": "UI or content script",
+      "sublabel": "popup · side panel · page"
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Service worker",
+      "sublabel": "the only SDK caller"
+    },
+    {
+      "id": "session",
+      "type": "database",
+      "label": "chrome.storage.session",
+      "sublabel": "access token · in memory"
+    },
+    {
+      "id": "api",
+      "type": "external",
+      "label": "Product API",
+      "sublabel": "host permission · bearer"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 300,
+      "label": "Trust gate"
+    },
+    {
+      "from": 308,
+      "to": 556,
+      "label": "Allowed request → API"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "caller",
+      "to": "worker",
+      "y": 180,
+      "label": "typed RPC {v, type, id, payload}",
+      "variant": "emphasis",
+      "note": "the worker classifies the sender (id → origin/tab), checks the message permission table, then parses the payload schema — a rejected message answers a typed FORBIDDEN, never a silent undefined"
+    },
+    {
+      "id": "m2",
+      "from": "worker",
+      "to": "caller",
+      "y": 268,
+      "label": "FORBIDDEN · type not allowed for this sender",
+      "variant": "return"
+    },
+    {
+      "id": "m3",
+      "from": "caller",
+      "to": "worker",
+      "y": 328,
+      "label": "report.create · typed RPC",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m4",
+      "from": "worker",
+      "to": "session",
+      "y": 372,
+      "label": "read the access token"
+    },
+    {
+      "id": "m5",
+      "from": "session",
+      "to": "worker",
+      "y": 408,
+      "label": "token",
+      "variant": "return"
+    },
+    {
+      "id": "m6",
+      "from": "worker",
+      "to": "api",
+      "y": 444,
+      "label": "fetch · bearer · correlationId",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m7",
+      "from": "api",
+      "to": "worker",
+      "y": 480,
+      "label": "200 · payload",
+      "variant": "return"
+    },
+    {
+      "id": "m8",
+      "from": "worker",
+      "to": "caller",
+      "y": 522,
+      "label": "ok · data (never a token)",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "caller",
+      "from": 168,
+      "to": 282,
+      "type": "frontend"
+    },
+    {
+      "participant": "caller",
+      "from": 316,
+      "to": 536,
+      "type": "frontend"
+    },
+    {
+      "participant": "worker",
+      "from": 168,
+      "to": 536,
+      "type": "backend"
+    },
+    {
+      "participant": "session",
+      "from": 366,
+      "to": 416,
+      "type": "database"
+    },
+    {
+      "participant": "api",
+      "from": 438,
+      "to": 490,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "The gate is not optional",
+      "items": [
+        "sender.id first, then the origin, then the frame, then the message permission table, then the payload schema — in that order, on every message",
+        "a content script gets a small subset; a session, policy or settings type is never in it, and the worker re-validates anyway",
+        "onMessageExternal uses an exact origin allowlist; a rejected message returns a typed FORBIDDEN, never a silent undefined"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "The token never travels",
+      "items": [
+        "the access token is read from chrome.storage.session by the worker and attached by the SDK; no UI surface ever holds it",
+        "the response to the UI carries data, never a token — the page, a content script and a log never see one",
+        "chrome.storage.local, chrome.storage.sync and IndexedDB are not encrypted at rest, so a secret never goes there"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "The worker may be asleep",
+      "items": [
+        "the RPC wakes the worker; the first render of a surface shows a loading state, then the data",
+        "a long-lived runtime.connect port dies with the worker: the client reconnects with backoff and resumes from a cursor",
+        "the correlation id follows the request into the logs and the API, so a failure can be traced across the boundary"
+      ]
+    }
+  ]
+}

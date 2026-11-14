@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "beautifulextension — Dataflow: chrome.storage → HTTP",
+    "quality_profile": "showcase",
+    "output": "database-dataflow.dataflow.html"
+  },
+  "stages": [
+    {
+      "label": "Surfaces"
+    },
+    {
+      "label": "Service worker"
+    },
+    {
+      "label": "chrome.storage"
+    },
+    {
+      "label": "Product API"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "UI surfaces",
+      "sublabel": "popup · side panel · options",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "content",
+      "type": "frontend",
+      "label": "Content script",
+      "sublabel": "typed command only",
+      "stage": 0,
+      "row": 1
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Service worker",
+      "sublabel": "use case · adapters",
+      "stage": 1,
+      "row": 0,
+      "width": 170,
+      "height": 80,
+      "yOffset": -11
+    },
+    {
+      "id": "session",
+      "type": "database",
+      "label": "storage.session",
+      "sublabel": "access token · in memory",
+      "stage": 2,
+      "row": 1
+    },
+    {
+      "id": "local",
+      "type": "database",
+      "label": "storage.local",
+      "sublabel": "settings · job store",
+      "stage": 2,
+      "row": 2
+    },
+    {
+      "id": "managed",
+      "type": "database",
+      "label": "storage.managed",
+      "sublabel": "admin policy · read-only",
+      "stage": 2,
+      "row": 3
+    },
+    {
+      "id": "api",
+      "type": "external",
+      "label": "Product API",
+      "sublabel": "host permission · bearer",
+      "stage": 3,
+      "row": 0
+    }
+  ],
+  "flows": [
+    {
+      "id": "df1",
+      "from": "ui",
+      "to": "worker",
+      "label": "typed RPC"
+    },
+    {
+      "id": "df2",
+      "from": "content",
+      "to": "worker",
+      "label": "typed command",
+      "route": "straight"
+    },
+    {
+      "id": "df3",
+      "from": "worker",
+      "to": "session",
+      "label": "token",
+      "variant": "security",
+      "labelAt": [
+        530,
+        214
+      ]
+    },
+    {
+      "id": "df4",
+      "from": "worker",
+      "to": "local",
+      "label": "jobs · settings",
+      "labelAt": [
+        530,
+        328
+      ]
+    },
+    {
+      "id": "df5",
+      "from": "worker",
+      "to": "managed",
+      "label": "policy",
+      "variant": "security",
+      "labelAt": [
+        530,
+        442
+      ]
+    },
+    {
+      "id": "df6",
+      "from": "worker",
+      "to": "api",
+      "label": "fetch · bearer",
+      "variant": "emphasis",
+      "route": "straight"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "There is no database behind the extension",
+      "items": [
+        "the extension's persistent state is chrome.storage; the remote system of record is the product API, reached over HTTPS with a host permission",
+        "storage.local: device-scoped settings, caches and the persisted job queue — not encrypted at rest",
+        "storage.session: the access token and ephemeral session state, in memory, visible to the worker and the extension's own pages"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "The worker is the single writer",
+      "items": [
+        "every durable write goes through a typed adapter with a schema, a version, a default and namespaced keys",
+        "read-modify-write runs under navigator.locks.request(key, …); another context asks the worker, it never writes directly",
+        "migrations are pure (vN) → (vN+1) functions, idempotent, run on install and lazily on first read, with a one-release backup key"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "What may be stored where",
+      "items": [
+        "a token never goes to storage.local, storage.sync or IndexedDB; storage.session is the extension's ephemeral store",
+        "storage.managed is read-only admin policy: the effective setting is managed > user (local/sync) > defaults, computed by a pure resolver",
+        "storage.onChanged on the managed area recomputes the policy and applies the kill switch immediately"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Outbound and inbound",
+      "items": [
+        "the worker fetches the API with the bearer token, the tenant and the correlation headers attached by the SDK",
+        "a content script's fetch runs with the page's origin and the page's CORS rules; only the worker gets the host permission",
+        "the response returns as data to the UI; a token never crosses back to a surface or a page"
+      ]
+    }
+  ]
+}

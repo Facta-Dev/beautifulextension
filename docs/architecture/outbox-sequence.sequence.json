@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "beautifulextension — Async Delivery Sequence (alarm drain)",
+    "quality_profile": "showcase",
+    "output": "outbox-sequence.sequence.html"
+  },
+  "participants": [
+    {
+      "id": "usecase",
+      "type": "backend",
+      "label": "Use case",
+      "sublabel": "the worker"
+    },
+    {
+      "id": "jobs",
+      "type": "database",
+      "label": "Job store",
+      "sublabel": "storage.local · IndexedDB"
+    },
+    {
+      "id": "alarm",
+      "type": "backend",
+      "label": "Alarm drain",
+      "sublabel": "chrome.alarms · locked"
+    },
+    {
+      "id": "api",
+      "type": "external",
+      "label": "Product API",
+      "sublabel": "fetch · bearer"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 232,
+      "label": "Enqueue"
+    },
+    {
+      "from": 244,
+      "to": 430,
+      "label": "Alarm drain · one job"
+    },
+    {
+      "from": 436,
+      "to": 512,
+      "label": "Failure handling"
+    }
+  ],
+  "messages": [
+    {
+      "id": "q1",
+      "from": "usecase",
+      "to": "jobs",
+      "y": 180,
+      "label": "persist the job {id, type, payload, attempts, nextRunAt}",
+      "variant": "emphasis"
+    },
+    {
+      "id": "q2",
+      "from": "jobs",
+      "to": "usecase",
+      "y": 214,
+      "label": "committed · durable",
+      "variant": "return"
+    },
+    {
+      "id": "q3",
+      "from": "alarm",
+      "to": "jobs",
+      "y": 264,
+      "label": "claim the due job (one drain at a time)"
+    },
+    {
+      "id": "q4",
+      "from": "jobs",
+      "to": "alarm",
+      "y": 298,
+      "label": "the job",
+      "variant": "return"
+    },
+    {
+      "id": "q5",
+      "from": "alarm",
+      "to": "api",
+      "y": 334,
+      "label": "fetch · bearer · idempotency key",
+      "variant": "emphasis"
+    },
+    {
+      "id": "q6",
+      "from": "api",
+      "to": "alarm",
+      "y": 368,
+      "label": "200 · payload",
+      "variant": "return"
+    },
+    {
+      "id": "q7",
+      "from": "alarm",
+      "to": "jobs",
+      "y": 410,
+      "label": "ack → completed"
+    },
+    {
+      "id": "q8",
+      "from": "alarm",
+      "to": "jobs",
+      "y": 450,
+      "label": "retryable → backoff + jitter, attempts++",
+      "variant": "dashed"
+    },
+    {
+      "id": "q9",
+      "from": "alarm",
+      "to": "jobs",
+      "y": 490,
+      "label": "terminal → dead-letter",
+      "variant": "dashed"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "usecase",
+      "from": 168,
+      "to": 224,
+      "type": "backend"
+    },
+    {
+      "participant": "jobs",
+      "from": 168,
+      "to": 224,
+      "type": "database"
+    },
+    {
+      "participant": "alarm",
+      "from": 258,
+      "to": 460,
+      "type": "backend"
+    },
+    {
+      "participant": "jobs",
+      "from": 258,
+      "to": 306,
+      "type": "database"
+    },
+    {
+      "participant": "api",
+      "from": 328,
+      "to": 376,
+      "type": "external"
+    },
+    {
+      "participant": "jobs",
+      "from": 402,
+      "to": 500,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Persisted before the answer",
+      "items": [
+        "the use case writes the job and answers; the work is not done inside the event listener",
+        "the alarm tick is the only thing that starts a drain, and it survives the worker being terminated",
+        "navigator.locks keeps one drain at a time when several ticks overlap"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "At least once, made safe",
+      "items": [
+        "an event can be delivered twice and the worker can die mid-flight: the job id is the idempotency key",
+        "a non-idempotent call carries an idempotency key so a retry is safe",
+        "the ack is the last write; without it the job is claimed again — which is the point"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Where the failures go",
+      "items": [
+        "network, 429 and 5xx: exponential backoff with jitter, honouring Retry-After, then the next tick claims it again",
+        "a terminal failure goes to the dead-letter store with a visible count",
+        "the diagnostics export shows the queue depth, the dead-letter count and the failures — no tokens, no page content"
+      ]
+    }
+  ]
+}

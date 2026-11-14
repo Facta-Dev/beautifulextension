@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "beautifulextension — Layers & Slices",
+    "quality_profile": "showcase",
+    "output": "services-slices.architecture.html"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      70,
+      90
+    ],
+    "cols": 5,
+    "gapX": 110,
+    "gapY": 100,
+    "cellW": 180,
+    "cellH": 80
+  },
+  "components": [
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "ui",
+      "sublabel": "popup · side panel",
+      "row": 0,
+      "col": 0,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "content",
+      "type": "frontend",
+      "label": "content",
+      "sublabel": "page bridge · no SDK",
+      "row": 1,
+      "col": 0,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "contracts",
+      "type": "backend",
+      "label": "contracts/",
+      "sublabel": "one typed protocol",
+      "row": 0,
+      "col": 1,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "adapters",
+      "type": "backend",
+      "label": "adapters",
+      "sublabel": "chrome.* · storage · alarms",
+      "row": 0,
+      "col": 2,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "application",
+      "type": "backend",
+      "label": "application",
+      "sublabel": "use cases · policy",
+      "row": 0,
+      "col": 3,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "domain",
+      "sublabel": "entities · rules",
+      "row": 1,
+      "col": 3,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "core",
+      "sublabel": "ports · pure types",
+      "row": 1,
+      "col": 4,
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "sdk",
+      "type": "backend",
+      "label": "@/sdk",
+      "sublabel": "worker-only client",
+      "row": 1,
+      "col": 2,
+      "size": [
+        170,
+        80
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Extension surfaces — clients of the worker",
+      "wraps": [
+        "ui",
+        "content"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "The service worker bundle — the only holder of the session and the SDK",
+      "wraps": [
+        "adapters",
+        "application",
+        "domain",
+        "core",
+        "sdk"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "The contract — one protocol, validated by both ends",
+      "wraps": [
+        "contracts"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "s1",
+      "from": "ui",
+      "to": "contracts",
+      "label": "typed RPC",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s2",
+      "from": "content",
+      "to": "contracts",
+      "label": "content subset",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s3",
+      "from": "contracts",
+      "to": "adapters",
+      "label": "worker routes it",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s4",
+      "from": "adapters",
+      "to": "application",
+      "label": "implements ports",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s5",
+      "from": "application",
+      "to": "domain",
+      "label": "rules",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "s6",
+      "from": "domain",
+      "to": "core",
+      "label": "entities",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s7",
+      "from": "application",
+      "to": "core",
+      "label": "port interfaces",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "s8",
+      "from": "adapters",
+      "to": "sdk",
+      "label": "SDK client",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "The layer contract",
+      "items": [
+        "domain owns entities, rules and ports; application owns use cases, orchestration and the policy resolver; adapters own storage, messaging, the SDK, alarms, identity and offscreen",
+        "core owns ports and pure types and imports nothing else — it is the one thing every layer may depend on",
+        "domain and application never import chrome.*, the DOM, React or the SDK: a use case that cannot run without a browser was never a use case"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Ports belong to the consumer",
+      "items": [
+        "SessionStore, KeyValueStore<T>, PolicySource, Clock, JobQueue and SdkClient are declared by application; RpcTransport by ui and content; OffscreenParser by application",
+        "the adapter implements the port: chrome.storage.session for SessionStore, chrome.storage.local for KeyValueStore, storage/IndexedDB plus alarms for JobQueue, the generated SDK for SdkClient",
+        "the composition root wires the real adapters; tests wire fakes and the use case does not change"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The walls are machine-checked",
+      "items": [
+        "no-restricted-globals and no-restricted-imports deny chrome in src/domain and src/application",
+        "src/ui may not import @/sdk; src/content may not import @/sdk, @/session or @/auth; src/sdk may not import chrome, react or @/session",
+        "no-eval, no-new-func and no-implied-eval keep remote code out; ban-ts-comment and the eslint-comments rules keep the silences narrow and explained"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "One feature = one slice",
+      "items": [
+        "src/features/<feature>/ holds that feature's domain, application, adapters, ui and content code, and the feature name repeats in the route, the SDK module, the permission prefix and the message types",
+        "a feature never imports another feature's internals: shared behavior moves to core or a shared adapter",
+        "the fix for a broken wall is to re-cut the layout, never to add a path to the exception list — a config exception is a contract change"
+      ]
+    }
+  ]
+}

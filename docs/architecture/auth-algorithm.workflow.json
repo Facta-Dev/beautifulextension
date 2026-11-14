@@ -1,0 +1,77 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "beautifulextension — Trust Algorithm (sender, table, token)",
+    "quality_profile": "showcase",
+    "output": "auth-algorithm.workflow.html"
+  },
+  "lanes": [
+    { "id": "sender", "label": "Sender" },
+    { "id": "gates", "label": "Gate stack" },
+    { "id": "worker", "label": "Service worker" },
+    { "id": "session", "label": "Session" },
+    { "id": "policy", "label": "Policy" }
+  ],
+  "phases": [
+    { "id": "ingest", "label": "Ingest", "fromCol": 0, "toCol": 1 },
+    { "id": "gate", "label": "Gate stack", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "act", "label": "Handle + call", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["arrive", "identify", "table", "handle", "token", "call"],
+  "nodes": [
+    { "id": "arrive", "lane": "sender", "col": 0, "type": "frontend", "label": "Message arrives", "sublabel": "chrome.runtime.onMessage" },
+    { "id": "identify", "lane": "gates", "col": 1, "type": "security", "label": "classify(sender)", "sublabel": "id → origin → tab" },
+    { "id": "table", "lane": "gates", "col": 2, "type": "security", "label": "Permission table", "sublabel": "type absent → rejected" },
+    { "id": "policy", "lane": "policy", "col": 2, "type": "security", "label": "storage.managed", "sublabel": "kill switch" },
+    { "id": "handle", "lane": "worker", "col": 3, "type": "backend", "label": "Handler", "sublabel": "parse schema → use case" },
+    { "id": "token", "lane": "session", "col": 4, "type": "database", "label": "chrome.storage.session", "sublabel": "access token · in memory" },
+    { "id": "call", "lane": "worker", "col": 5, "type": "backend", "label": "SDK fetch", "sublabel": "bearer · host permissions" }
+  ],
+  "edges": [
+    { "id": "a1", "from": "arrive", "to": "identify", "label": "sender" },
+    { "id": "a2", "from": "identify", "to": "table", "label": "sender class" },
+    { "id": "a3", "from": "policy", "to": "handle", "label": "feature disabled", "variant": "security" },
+    { "id": "a4", "from": "table", "to": "handle", "label": "allowed type", "variant": "emphasis" },
+    { "id": "a5", "from": "handle", "to": "token", "label": "read the token" },
+    { "id": "a6", "from": "token", "to": "call", "label": "bearer token" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "There is no user login here",
+      "items": [
+        "this repo teaches an extension, not an account system: the trust boundary is the message sender, the permission table and the token in chrome.storage.session",
+        "the extension has no authentication server of its own; if the product has one, the worker talks to it through the SDK and the token lands in storage.session",
+        "the page never receives a token — not through a message, not through window.postMessage, not in the DOM"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "The gate stack, in order",
+      "items": [
+        "sender.id must equal chrome.runtime.id; another extension is null unless explicitly allowlisted",
+        "then the origin: chrome-extension://<id>/… is a UI surface, a sender.tab with a URL on the content allowlist is a content script",
+        "then the frame, then the message permission table — a type absent from the table is rejected — then the payload schema"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The content subset is deliberately small",
+      "items": [
+        "a content script may capture a user action and send a typed command; a session, policy or settings type is never in its subset",
+        "the worker re-validates the sender even when the content script already did: the page is untrusted data",
+        "onMessageExternal is limited to allowlisted origins in externally_connectable, never a wildcard"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Errors are values",
+      "items": [
+        "a rejected message answers a typed FORBIDDEN, never a silent undefined — the RPC client surfaces a typed error",
+        "the envelope carries a protocol version, a correlation id and a request id; both ends parse it with the same schema",
+        "an unknown version or an unknown payload field is rejected rather than accepted and ignored"
+      ]
+    }
+  ]
+}
