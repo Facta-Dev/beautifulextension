@@ -16,6 +16,11 @@ description: >-
 
 # Chrome extension best practices (Manifest V3)
 
+> Playbook set: start with [`PLAYBOOK_MASTER.md`](https://github.com/Facta-Dev/ai-coding-playbook/blob/main/PLAYBOOK_MASTER.md) —
+> the catalog, precedence and cross-playbook invariants — then
+> [`PLAYBOOK_CHROME_EXTENSION.md`](https://github.com/Facta-Dev/ai-coding-playbook/blob/main/PLAYBOOK_CHROME_EXTENSION.md). This skill is the runnable companion of that
+> contract.
+
 Distilled from Chrome's MV3 documentation, the Web Store program policies, and
 the facta extension handbook. The digests live in `references/`; where sources
 disagree, this file says which to follow and why.
