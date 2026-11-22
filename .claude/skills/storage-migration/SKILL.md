@@ -1,5 +1,5 @@
 ---
-name: "<app> Storage Migration"
+name: storage-migration
 description: "Migrates a durable <app> extension record — the version bump, the pure (vN) to (vN+1) migration, the fixture of the previous version and the backup-key path — so an existing installation keeps its data."
 division: client
 ---

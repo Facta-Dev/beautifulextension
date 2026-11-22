@@ -1,5 +1,5 @@
 ---
-name: "<app> Review"
+name: review
 description: "Runs the <app> extension pre-landing checklist — layer boundaries, sender validation, protocol coverage, storage versioning, permission posture and test adequacy — producing a severity-ranked verdict against `make ci`."
 division: core
 ---

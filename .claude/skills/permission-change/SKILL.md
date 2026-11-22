@@ -1,5 +1,5 @@
 ---
-name: "<app> Permission Change"
+name: permission-change
 description: "Registers a permission or host-pattern change in the <app> extension — the docs/permissions-register.md entry with justification, scope, data touched, owner, review date and alternatives, plus the manifest edit and the test that pins the posture."
 division: security
 ---

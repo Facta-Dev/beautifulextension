@@ -1,5 +1,5 @@
 ---
-name: "<app> Add Slice"
+name: add-slice
 description: "Scaffold a new feature slice (src/features/<scope>) in the <app> extension — domain, application, adapters, ui, viewmodels, contracts and the barrel — wired in entrypoints/ with the fake-backed test gate, as one change."
 division: core
 ---

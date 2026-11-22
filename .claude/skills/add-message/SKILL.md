@@ -1,5 +1,5 @@
 ---
-name: "<app> Add Message"
+name: add-message
 description: "Add a message type to the <app> extension protocol — the shared zod envelope in src/contracts/protocol.ts, the PROTOCOL sender-class entry, the client call, the server handler and the contract plus sender-class tests — as one gated change."
 division: client
 ---
