@@ -1,6 +1,6 @@
 {
   "name": "beautiful-extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Write, review, port, and enforce idiomatic Chrome extensions on Manifest V3 + TypeScript: three skills distilled from Chrome's MV3 documentation, the Web Store policies, the extension security guidance, and the facta extension handbook, plus a drop-in eslint config.",
   "license": "MIT",
   "author": {
